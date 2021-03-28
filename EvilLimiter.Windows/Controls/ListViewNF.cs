@@ -1,9 +1,8 @@
-﻿using MetroFramework.Controls;
-using System.Windows.Forms;
+﻿using System.Windows.Forms;
 
 namespace EvilLimiter.Windows.Controls
 {
-    public class ListViewNF : MetroListView
+    public class ListViewNF : ListView
     {
         public ListViewNF()
         {

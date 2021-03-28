@@ -1,5 +1,4 @@
-﻿using MetroFramework;
-using System;
+﻿using System;
 using System.Configuration;
 
 namespace EvilLimiter.Windows.Common
@@ -10,13 +9,6 @@ namespace EvilLimiter.Windows.Common
         {
             get { lock (_startRoutingServiceOnStartupLock) return _startRoutingServiceOnStartup; }
             set { lock (_startRoutingServiceOnStartupLock) _startRoutingServiceOnStartup = value; }
-        }
-
-
-        public static MetroColorStyle ColorStyle
-        {
-            get { lock (_colorStyleLock) return _colorStyle; }
-            set { lock (_colorStyleLock) _colorStyle = value; }
         }
 
 
@@ -62,9 +54,6 @@ namespace EvilLimiter.Windows.Common
         private static bool _startRoutingServiceOnStartup;
         private static readonly object _startRoutingServiceOnStartupLock;
 
-        private static MetroColorStyle _colorStyle;
-        private static readonly object _colorStyleLock;
-
         private static int _scanSendInterval;
         private static readonly object _scanSendIntervalLock;
         private static int _scanReplyTimeout;
@@ -85,7 +74,6 @@ namespace EvilLimiter.Windows.Common
         static Config()
         {
             _startRoutingServiceOnStartup = false;
-            _colorStyle = MetroColorStyle.Default;
             _scanSendInterval = 10;
             _scanReplyTimeout = 2000;
             _spoofSendInterval = 4000;
@@ -94,7 +82,6 @@ namespace EvilLimiter.Windows.Common
             _bandwidthMonitorUpdateInterval = 1000;
 
             _startRoutingServiceOnStartupLock = new object();
-            _colorStyleLock = new object();
             _scanSendIntervalLock = new object();
             _scanReplyTimeoutLock = new object();
             _spoofSendIntervalLock = new object();
@@ -113,7 +100,6 @@ namespace EvilLimiter.Windows.Common
 
                 StartRoutingServiceOnStartup = bool.Parse(config.AppSettings.Settings["StartRoutingServiceOnStartup"].Value);
 
-                ColorStyle = (MetroColorStyle)Enum.Parse(typeof(MetroColorStyle), config.AppSettings.Settings["ColorStyle"].Value);
 
                 ScanSendInterval = int.Parse(config.AppSettings.Settings["ScanSendInterval"].Value);
                 ScanReplyTimeout = int.Parse(config.AppSettings.Settings["ScanReplyTimeout"].Value);
@@ -140,8 +126,6 @@ namespace EvilLimiter.Windows.Common
                 var config = ConfigurationManager.OpenExeConfiguration(ConfigurationUserLevel.None);
 
                 config.AppSettings.Settings["StartRoutingServiceOnStartup"].Value = StartRoutingServiceOnStartup.ToString();
-
-                config.AppSettings.Settings["ColorStyle"].Value = ColorStyle.ToString();
 
                 config.AppSettings.Settings["ScanSendInterval"].Value = ScanSendInterval.ToString();
                 config.AppSettings.Settings["ScanReplyTimeout"].Value = ScanReplyTimeout.ToString();

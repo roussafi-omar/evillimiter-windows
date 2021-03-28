@@ -1,6 +1,5 @@
 ﻿using EvilLimiter.Windows.Data;
 using EvilLimiter.Windows.Utilities;
-using MetroFramework;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -8,7 +7,7 @@ using System.Windows.Forms;
 
 namespace EvilLimiter.Windows.Forms
 {
-    public partial class FrmLimit : FrmBase
+    public partial class FrmLimit : Form
     {
         public IEnumerable<Host> Hosts { get; }
         public LimitRule Rule { get; private set; }
@@ -82,7 +81,7 @@ namespace EvilLimiter.Windows.Forms
 
         private LimitRule ParseLimitInformation()
         {
-            var errorMessage = new Action<string, string>((title, msg) => MetroMessageBox.Show(this, msg, title, MessageBoxButtons.OK, MessageBoxIcon.Error, 120));
+            var errorMessage = new Action<string, string>((title, msg) => MessageBox.Show(msg, title, MessageBoxButtons.OK, MessageBoxIcon.Error));
             var rule = LimitRule.Free;
 
             if (tglUpload.Checked)

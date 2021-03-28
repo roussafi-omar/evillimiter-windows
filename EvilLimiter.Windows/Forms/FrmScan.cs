@@ -1,7 +1,6 @@
 ﻿using EvilLimiter.Windows.Data;
 using EvilLimiter.Windows.Networking;
 using EvilLimiter.Windows.Utilities;
-using MetroFramework;
 using PcapDotNet.Packets.IpV4;
 using System;
 using System.Collections.Generic;
@@ -9,7 +8,7 @@ using System.Windows.Forms;
 
 namespace EvilLimiter.Windows.Forms
 {
-    public partial class FrmScan : FrmBase
+    public partial class FrmScan : Form
     {
         private enum ScanState
         {
@@ -117,7 +116,22 @@ namespace EvilLimiter.Windows.Forms
 
         #region Form Events
 
-        private void BtnScan_Click(object sender, System.EventArgs e)
+        private void FrmScan_أFormClosing(object sender, System.Windows.Forms.FormClosingEventArgs e)
+        {
+            if (e.CloseReason != CloseReason.UserClosing)
+                return;
+
+            if (_hostScanner.IsScanning)
+                MessageBox.Show("Cancel the scan or wait till it is finished to close the window.", "Cancel Scan", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+            else
+                Hide();
+
+            e.Cancel = true;
+        }
+
+        #endregion
+
+        private void btnScan_Click_1(object sender, EventArgs e)
         {
             if (_hostScanner.IsScanning)
             {
@@ -136,7 +150,7 @@ namespace EvilLimiter.Windows.Forms
                     }
                     catch (FormatException)
                     {
-                        MetroMessageBox.Show(this, "IP range string is invalid.", "Scan Error", MessageBoxButtons.OK, MessageBoxIcon.Error, 120);
+                        MessageBox.Show("IP range string is invalid.", "Scan Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
                         return;
                     }
                 }
@@ -147,20 +161,5 @@ namespace EvilLimiter.Windows.Forms
                 _hostScanner.Scan(range);
             }
         }
-
-        private void FrmScan_FormClosing(object sender, System.Windows.Forms.FormClosingEventArgs e)
-        {
-            if (e.CloseReason != CloseReason.UserClosing)
-                return;
-
-            if (_hostScanner.IsScanning)
-                MetroMessageBox.Show(this, "Cancel the scan or wait till it is finished to close the window.", "Cancel Scan", MessageBoxButtons.OK, MessageBoxIcon.Warning, 130);
-            else
-                Hide();
-
-            e.Cancel = true;
-        }
-
-        #endregion
     }
 }

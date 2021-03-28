@@ -2,7 +2,6 @@
 using EvilLimiter.Windows.Data;
 using EvilLimiter.Windows.Networking;
 using EvilLimiter.Windows.Utilities;
-using MetroFramework;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -13,7 +12,7 @@ using System.Windows.Forms;
 
 namespace EvilLimiter.Windows.Forms
 {
-    public partial class FrmMain : FrmBase
+    public partial class FrmMain : Form
     {
         private enum HostColumn
         {
@@ -60,11 +59,6 @@ namespace EvilLimiter.Windows.Forms
 
         private void InitializeForm()
         {
-            lblVersion.Text = string.Format("v{0}", Globals.Version);
-
-            cmbColorStyle.DataSource = Enum.GetValues(typeof(MetroColorStyle));
-            cmbColorStyle.SelectedItem = Config.ColorStyle;
-
             tcHosts.SelectTab(0);
             tcSettings.SelectTab(0);
         }
@@ -166,13 +160,11 @@ The application will be terminated to avoid unwanted behaviour.",
                 Globals.GithubRepoLink
             );
 
-            MetroMessageBox.Show(
-                this,
+            MessageBox.Show(
                 msg,
                 "Unhandled Exception",
                 MessageBoxButtons.OK,
-                MessageBoxIcon.Error,
-                255
+                MessageBoxIcon.Error
             );
 
             Environment.Exit(-1);
@@ -191,6 +183,7 @@ The application will be terminated to avoid unwanted behaviour.",
 
         private void BtnScan_Click(object sender, System.EventArgs e)
         {
+
             _frmScan.ShowDialog(this);
         }
 
@@ -273,7 +266,6 @@ The application will be terminated to avoid unwanted behaviour.",
             var invokeGenerator = new Func<bool, MethodInvoker>(status => (MethodInvoker)delegate
             {
                 tglRouting.Enabled = status;
-                spinnerRouting.Visible = !status;
             });
 
             if (tglRouting.Checked && Globals.RoutingService.Status != ServiceControllerStatus.Running)
@@ -314,65 +306,6 @@ The application will be terminated to avoid unwanted behaviour.",
             }
         }
 
-        private void BtnApplySettings_Click(object sender, EventArgs e)
-        {
-            var errorMessage = new Action<string, string>((title, msg) => MetroMessageBox.Show(this, msg, title, MessageBoxButtons.OK, MessageBoxIcon.Error, 120));
-            var successMessage = new Action<string>((msg) => MetroMessageBox.Show(this, msg, "Success", MessageBoxButtons.OK, MessageBoxIcon.Information, 120));
-
-            if (!int.TryParse(tbScanSendInterval.Text, out int scanSendInterval) || scanSendInterval < 0)
-            {
-                errorMessage("Value Error", "Invalid scan send interval.");
-                return;
-            }
-            if (!int.TryParse(tbScanReplyTimeout.Text, out int scanReplyTimeout) || scanReplyTimeout < 0)
-            {
-                errorMessage("Value Error", "Invalid scan reply timeout.");
-                return;
-            }
-            if (!int.TryParse(tbSpoofSendInterval.Text, out int spoofSendInterval) || spoofSendInterval < 0)
-            {
-                errorMessage("Value Error", "Invalid spoof send interval.");
-                return;
-            }
-            if (!int.TryParse(tbSpoofRestoreSendCount.Text, out int spoofRestoreSendCount) || spoofRestoreSendCount < 0)
-            {
-                errorMessage("Value Error", "Invalid spoof restore send count.");
-                return;
-            }
-            if (!int.TryParse(tbSpoofRestoreSendInterval.Text, out int spoofRestoreSendInterval) || spoofRestoreSendInterval < 0)
-            {
-                errorMessage("Value Error", "Invalid spoof restore send interval.");
-                return;
-            }
-            if (!int.TryParse(tbBandwidthMonitorUpdateInterval.Text, out int bandwidthMonitorUpdateInterval) || bandwidthMonitorUpdateInterval <= 0)
-            {
-                errorMessage("Value Error", "Invalid bandwidth monitor update interval.");
-                return;
-            }
-            if (!Enum.TryParse(cmbColorStyle.SelectedValue.ToString(), out MetroColorStyle colorStyle))
-            {
-                errorMessage("Value Error", "Invalid color style.");
-                return;
-            }
-
-            if (Config.ColorStyle != colorStyle)
-                FrmBase.OnColorStyleChanged(new ColorStyleChangedEventArgs(colorStyle));
-
-            Config.StartRoutingServiceOnStartup = cbRoutingStartup.Checked;
-            Config.ColorStyle = colorStyle;
-            Config.ScanSendInterval = scanSendInterval;
-            Config.ScanReplyTimeout = scanReplyTimeout;
-            Config.SpoofSendInterval = spoofSendInterval;
-            Config.SpoofRestoreSendCount = spoofRestoreSendCount;
-            Config.SpoofRestoreSendInterval = spoofRestoreSendInterval;
-            Config.BandwidthMonitorUpdateInterval = bandwidthMonitorUpdateInterval;
-
-            if (Config.Write())
-                successMessage("Changes have been applied.");
-            else
-                errorMessage("Write Error", "Could not write to config.");
-        }
-
         private void LnkEvilLimiter_Click(object sender, EventArgs e)
         {
             System.Diagnostics.Process.Start(@"https://www.github.com/bitbrute/evillimiter");
@@ -391,25 +324,74 @@ The application will be terminated to avoid unwanted behaviour.",
 
         private void FrmMain_FormClosing(object sender, FormClosingEventArgs e)
         {
-            if (e.CloseReason != CloseReason.UserClosing)
-                return;
-
-            if (GetAllHosts().Any(x => x.Status != Host.HostStatus.Free))
-            {
-                var result = MetroMessageBox.Show(
-                    this,
-                    "Currently limited hosts will not be freed gracefully.\nDo you still want to continue?",
-                    "Are you sure?",
-                    MessageBoxButtons.YesNo,
-                    MessageBoxIcon.Warning, 120
-                );
-
-                if (result == DialogResult.No)
-                    e.Cancel = true;
-            }
+            Application.Exit();
+        
         }
 
         #endregion
 
+        private void button1_Click(object sender, EventArgs e)
+        {
+            foreach (ListViewItem item in lvwHosts.Items)
+            {
+                FreeHost((Host)item.Tag);
+                lvwHosts.Items.Remove((ListViewItem)item);
+            }
+        }
+
+        private void button6_Click(object sender, EventArgs e)
+        {
+            foreach (ListViewItem item in lvwHosts.Items)
+                item.Selected = true;
+        }
+
+        private void button5_Click(object sender, EventArgs e)
+        {
+            foreach (var host in GetSelectedHosts())
+            {
+                _hostSpoofer.Add(host);
+                _hostLimiter.Add(host, LimitRule.Block);
+
+                UpdateHostListView(host);
+            }
+        }
+
+        private void button4_Click(object sender, EventArgs e)
+        {
+            var frmLimit = new FrmLimit(GetSelectedHosts());
+            frmLimit.ShowDialog(this);
+
+            if (frmLimit.Rule != null)
+            {
+                foreach (var host in frmLimit.Hosts)
+                {
+                    if (host.LimitRule != frmLimit.Rule)
+                    {
+                        _hostSpoofer.Add(host);
+                        _hostLimiter.Add(host, frmLimit.Rule);
+
+                        UpdateHostListView(host);
+                    }
+                }
+            }
+        }
+
+        private void button3_Click(object sender, EventArgs e)
+        {
+            foreach (var host in GetSelectedHosts())
+            {
+                FreeHost(host);
+                UpdateHostListView(host);
+            }
+        }
+
+        private void button2_Click(object sender, EventArgs e)
+        {
+            var frmAdd = new FrmAddHost(GetAllHosts());
+            frmAdd.ShowDialog(this);
+
+            if (frmAdd.Host != null)
+                AddHost(frmAdd.Host);
+        }
     }
 }

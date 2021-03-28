@@ -1,5 +1,4 @@
 ﻿using EvilLimiter.Windows.Data;
-using MetroFramework;
 using PcapDotNet.Packets.Ethernet;
 using PcapDotNet.Packets.IpV4;
 using System;
@@ -8,7 +7,7 @@ using System.Windows.Forms;
 
 namespace EvilLimiter.Windows.Forms
 {
-    public partial class FrmAddHost : FrmBase
+    public partial class FrmAddHost : Form
     {
         public Host Host { get; private set; }
 
@@ -27,7 +26,7 @@ namespace EvilLimiter.Windows.Forms
 
         private Host ParseHostInformation()
         {
-            var errorMessage = new Action<string, string>((title, msg) => MetroMessageBox.Show(this, msg, title, MessageBoxButtons.OK, MessageBoxIcon.Error, 120));
+            var errorMessage = new Action<string, string>((title, msg) => MessageBox.Show(msg, title, MessageBoxButtons.OK, MessageBoxIcon.Error));
 
             IpV4Address ip;
             MacAddress mac;

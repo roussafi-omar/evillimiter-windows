@@ -1,7 +1,6 @@
 ﻿using EvilLimiter.Windows.Common;
 using EvilLimiter.Windows.Data;
 using EvilLimiter.Windows.Utilities;
-using MetroFramework;
 using PcapDotNet.Core;
 using PcapDotNet.Core.Extensions;
 using PcapDotNet.Packets.Ethernet;
@@ -17,7 +16,7 @@ using WinDivertSharp;
 
 namespace EvilLimiter.Windows.Forms
 {
-    public partial class FrmInterface : FrmBase
+    public partial class FrmInterface : Form
     {
         private readonly Dictionary<LivePacketDevice, DeviceAddress> _interfaces;
         private LivePacketDevice _currentInterface;
@@ -60,7 +59,7 @@ namespace EvilLimiter.Windows.Forms
                 cbInterfaces.SelectedItem = cbInterfaces.Items[0];
             else
             {
-                MetroMessageBox.Show(this, "No network interface detected.", "Interface Error", MessageBoxButtons.OK, MessageBoxIcon.Error, 120);
+                MessageBox.Show("No network interface detected.", "Interface Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 Environment.Exit(-1);
             }
         }
@@ -70,14 +69,12 @@ namespace EvilLimiter.Windows.Forms
         {
             lblStatus.Text = status;
             lblStatus.Visible = true;
-            spinStatus.Visible = true;
         }
 
 
         private void HideStatus()
         {
-            lblStatus.Visible = false;
-            spinStatus.Visible = false;
+            lblStatus.Text = ">_";
         }
 
 
@@ -96,7 +93,7 @@ namespace EvilLimiter.Windows.Forms
                 {
                     tbGatewayIp.Text = gateway.Address.ToString();
 
-                    ShowStatus("resolving MAC address...");
+                    ShowStatus("Resolving MAC Address...");
                     cbInterfaces.Enabled = false;
 
                     Task.Run(() =>
@@ -118,7 +115,7 @@ namespace EvilLimiter.Windows.Forms
 
         private NetworkInformation ParseNetworkInformation()
         {
-            var errorMessage = new Action<string, string>((title, msg) => MetroMessageBox.Show(this, msg, title, MessageBoxButtons.OK, MessageBoxIcon.Error, 120));
+            var errorMessage = new Action<string, string>((title, msg) => MessageBox.Show(msg, title, MessageBoxButtons.OK, MessageBoxIcon.Error));
 
             IpV4Address gatewayIp;
             MacAddress gatewayMac;
@@ -219,7 +216,7 @@ namespace EvilLimiter.Windows.Forms
             
             if (_packetCommunicator == null)
             {
-                MetroMessageBox.Show(this, "Network interface could not be opened.", "Interface Error", MessageBoxButtons.OK, MessageBoxIcon.Error, 120);
+                MessageBox.Show("Network interface could not be opened.", "Interface Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 cbInterfaces.SelectedItem = null;
                 _currentInterface = null;
                 return;
@@ -238,7 +235,7 @@ namespace EvilLimiter.Windows.Forms
                 Hide();
 
                 var frmMain = new FrmMain(netInfo);
-                frmMain.FormClosed += new FormClosedEventHandler((s, args) => Close());
+                // frmMain.FormClosed += new FormClosedEventHandler((s, args) => Close());
                 frmMain.Show(this);
             }
         }
